@@ -100,10 +100,13 @@ const delay = (ms) => new Promise(res => setTimeout(res, ms));
  * Create a DOM element from HTML string
  */
 function createCardElement(product) {
+  // Random stamp rotation between -20deg and -5deg for a natural human-stamped look
+  const stampRot = (Math.random() - 0.5) * 15 - 12;
+
   const html = `
     <div class="card">
       <div class="card-border"></div>
-      <div class="stamp">50% OFF</div>
+      <div class="stamp" style="--stamp-rot: ${stampRot}deg">50% OFF</div>
       <div class="card-content">
         <div class="brand">${product.brand}</div>
         <div class="image-container">
@@ -136,51 +139,81 @@ async function runAnimationLoop() {
 
   // Infinite loop for digital signage
   while (true) {
-    const product = products[currentIndex];
+    // Get 3 products to display at once
+    const currentProducts = [];
+    for(let i=0; i<3; i++) {
+        currentProducts.push(products[(currentIndex + i) % products.length]);
+    }
 
-    // 1. Create card and add to DOM
-    const cardEl = createCardElement(product);
-    container.innerHTML = ''; // Clear previous card
-    container.appendChild(cardEl);
+    container.innerHTML = ''; // Clear previous cards
+
+    const cardEls = [];
+
+    // Create and stage the 3 cards
+    currentProducts.forEach((product) => {
+      const cardEl = createCardElement(product);
+
+      // Randomize target position slightly for realistic tossing & misalignment
+      const rot = (Math.random() - 0.5) * 10; // -5 to 5 degrees tilt
+      const yOffset = (Math.random() - 0.5) * 4; // -2 to 2 vh vertical offset
+      const xOffset = (Math.random() - 0.5) * 2; // -1 to 1 vw horizontal offset
+
+      cardEl.style.setProperty('--target-rot', `${rot}deg`);
+      cardEl.style.setProperty('--target-y', `${yOffset}vh`);
+      cardEl.style.setProperty('--target-x', `${xOffset}vw`);
+
+      container.appendChild(cardEl);
+      cardEls.push(cardEl);
+    });
 
     // Give browser a moment to render the initial off-screen state
     await delay(100);
 
-    // 2. Deal the card in
-    cardEl.classList.add('deal-in');
+    // 2. Deal the cards in rapidly but sequentially
+    for(let i=0; i<3; i++) {
+      cardEls[i].classList.add('deal-in');
+      await delay(150); // Small delay between each throw
+    }
 
     // Wait for deal animation + let user read initial price/product
     await delay(2500);
 
-    // 3. The Smash (Stamp)
-    const stampEl = cardEl.querySelector('.stamp');
-    stampEl.classList.add('smash');
+    // 3. The Smash (Stamp) - staggered rapidly across the 3 cards
+    for(let i=0; i<3; i++) {
+      const stampEl = cardEls[i].querySelector('.stamp');
+      stampEl.classList.add('smash');
 
-    // Wait precisely for the moment the stamp hits the card
-    await delay(300);
+      // Wait precisely for the moment the stamp hits the card
+      setTimeout(() => {
+        cardEls[i].classList.add('shake');
 
-    // 4. Impact effects
-    cardEl.classList.add('shake');
+        // Strikethrough original price and reveal new price
+        const origPriceEl = cardEls[i].querySelector('.original-price');
+        const newPriceContainer = cardEls[i].querySelector('.new-price-container');
 
-    // Strikethrough original price and reveal new price
-    const origPriceEl = cardEl.querySelector('.original-price');
-    const newPriceContainer = cardEl.querySelector('.new-price-container');
+        origPriceEl.classList.add('struck');
+        newPriceContainer.classList.add('show');
+      }, 300); // 300ms is the impact point of stampSmash keyframe
 
-    origPriceEl.classList.add('struck');
-    newPriceContainer.classList.add('show');
+      await delay(150); // Small delay between stamps
+    }
 
-    // 5. Hold state so user reads the discount
+    // 5. Hold state so user reads the discounts
     await delay(4500);
 
-    // 6. Fly the card out
-    cardEl.classList.remove('deal-in');
-    cardEl.classList.add('fly-out');
+    // 6. Fly the cards out
+    for(let i=0; i<3; i++) {
+      cardEls[i].classList.remove('deal-in');
+      cardEls[i].classList.remove('shake');
+      cardEls[i].classList.add('fly-out');
+      await delay(120);
+    }
 
-    // Wait for fly out animation to finish before starting next
-    await delay(1000);
+    // Wait for fly out animation to finish before starting next batch
+    await delay(1200);
 
-    // Loop to next product
-    currentIndex = (currentIndex + 1) % products.length;
+    // Loop to next products (chunk by 3)
+    currentIndex = (currentIndex + 3) % products.length;
   }
 }
 

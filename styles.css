@@ -17,9 +17,23 @@ body, html {
   left: 0;
   width: 100vw;
   height: 100vh;
-  /* Radial gradient for spotlight effect */
-  background: radial-gradient(circle at 50% 50%, #114d27 0%, #061e0e 100%);
+  /* Richer vignette/spotlight */
+  background: radial-gradient(circle at 50% 50%, #155c2f 0%, #0a2914 65%, #030e06 100%);
   z-index: 1;
+}
+
+/* Photorealistic Felt Noise & Texture */
+.table-background::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.15;
+  mix-blend-mode: overlay;
+  pointer-events: none;
 }
 
 .table-background::after {
@@ -29,10 +43,13 @@ body, html {
   left: 0;
   width: 100%;
   height: 100%;
-  /* High-frequency noise for felt texture */
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+  /* Subtle fabric weave pattern */
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 4px 4px;
   pointer-events: none;
-  mix-blend-mode: multiply;
+  mix-blend-mode: screen;
 }
 
 /* Dust Particles Canvas */
@@ -44,6 +61,7 @@ body, html {
   height: 100vh;
   z-index: 2;
   pointer-events: none;
+  filter: blur(1px); /* Slight blur for atmospheric depth */
 }
 
 /* Scene Container */
@@ -57,47 +75,43 @@ body, html {
   justify-content: center;
   align-items: center;
   z-index: 10;
-  perspective: 1200px; /* For 3D dealt effect */
+  perspective: 1500px; /* Enhanced 3D depth */
 }
 
 .card-container {
   position: relative;
-  width: 42vh; /* Responsive sizing based on height */
-  height: 62vh;
+  width: 92vw;
+  height: 80vh;
   transform-style: preserve-3d;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 3vw;
 }
 
 /* The Playing Card */
 .card {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: #f4ecd8; /* Creamy vintage paper */
-  border-radius: 2vh;
+  position: relative;
+  width: 26vw;
+  max-width: 40vh;
+  aspect-ratio: 5 / 7;
+  background-color: #f6efe0; /* Creamy realistic paper */
+  border-radius: 1.5vh;
 
-  /* Heavy drop shadow for realism + inset edge highlights */
-  box-shadow:
-    0 30px 60px rgba(0,0,0,0.6),
-    0 0 0 1px rgba(255,255,255,0.5) inset,
-    -1px -1px 3px rgba(255,255,255,0.4) inset;
+  /* Hide initially until thrown */
+  opacity: 0;
+  transform: translate(0, 150vh);
 
   display: flex;
   flex-direction: column;
-  padding: 3vh;
+  padding: 2.2vh;
   box-sizing: border-box;
   overflow: hidden;
 
-  /* Initial off-screen state */
-  transform: translateY(150vh) rotateZ(20deg) rotateX(40deg) scale(0.6);
-  opacity: 0;
-
-  /* Will be animated via JS classes */
-  transition: transform 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.1), opacity 0.5s ease-out;
+  /* Will be animated via keyframes */
 }
 
-/* Paper Texture Overlay */
+/* Photorealistic Paper Texture Overlay */
 .card::after {
   content: "";
   position: absolute;
@@ -105,21 +119,35 @@ body, html {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='paper'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23paper)' opacity='0.05'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='paper'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.02' numOctaves='5' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='1 0 0 0 0, 0 0.95 0 0 0, 0 0.85 0 0 0, 0 0 0 0.15 0' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23paper)'/%3E%3C/svg%3E");
   pointer-events: none;
   mix-blend-mode: multiply;
   z-index: 0;
 }
 
+/* Subtle lighting gradient on the card */
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 40% 30%, rgba(255,255,255,0.4) 0%, rgba(0,0,0,0.1) 100%);
+  pointer-events: none;
+  z-index: 0;
+  mix-blend-mode: overlay;
+}
+
 /* Intricate inner border */
 .card-border {
   position: absolute;
-  top: 1.5vh;
-  left: 1.5vh;
-  right: 1.5vh;
-  bottom: 1.5vh;
-  border: 1px solid #1a3a24;
-  border-radius: 1vh;
+  top: 1.2vh;
+  left: 1.2vh;
+  right: 1.2vh;
+  bottom: 1.2vh;
+  border: 1px solid rgba(26, 58, 36, 0.6);
+  border-radius: 0.8vh;
   pointer-events: none;
   z-index: 1;
 }
@@ -127,12 +155,12 @@ body, html {
 .card-border::before {
   content: "";
   position: absolute;
-  top: 4px;
-  left: 4px;
-  right: 4px;
-  bottom: 4px;
-  border: 2px solid #1a3a24;
-  border-radius: 0.6vh;
+  top: 3px;
+  left: 3px;
+  right: 3px;
+  bottom: 3px;
+  border: 1.5px solid rgba(26, 58, 36, 0.8);
+  border-radius: 0.5vh;
 }
 
 /* Card Content Structure */
@@ -149,35 +177,47 @@ body, html {
 .brand {
   font-family: 'Montserrat', sans-serif;
   font-weight: 800;
-  font-size: 1.4vh;
+  font-size: 1.2vh;
   text-transform: uppercase;
-  letter-spacing: 0.3em;
+  letter-spacing: 0.25em;
   margin-top: 1vh;
-  margin-bottom: 2vh;
+  margin-bottom: 1.5vh;
   color: #2b5536;
 }
 
 .image-container {
   width: 100%;
-  height: 22vh;
+  height: 18vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 2vh;
+  margin-bottom: 1.5vh;
+  position: relative;
+}
+
+/* Subtle shadow underneath product */
+.image-container::after {
+  content: "";
+  position: absolute;
+  bottom: -1vh;
+  width: 60%;
+  height: 2vh;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0) 70%);
+  z-index: -1;
 }
 
 .product-image {
   max-width: 90%;
   max-height: 100%;
   object-fit: contain;
-  filter: drop-shadow(0 15px 15px rgba(0,0,0,0.3));
-  transform: translateZ(20px); /* Parallax hint */
+  filter: drop-shadow(0 10px 10px rgba(0,0,0,0.35));
+  transform: translateZ(10px); /* Parallax hint */
 }
 
 .title {
   font-family: 'Playfair Display', serif;
   font-weight: 700;
-  font-size: 3vh;
+  font-size: 2.2vh;
   line-height: 1.2;
   margin: 0 0 1vh 0;
   color: #122918;
@@ -190,12 +230,12 @@ body, html {
 .strain {
   font-family: 'Montserrat', sans-serif;
   font-weight: 600;
-  font-size: 1.2vh;
+  font-size: 1vh;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: #5c7562;
-  border-top: 1px solid #c0bba9;
-  border-bottom: 1px solid #c0bba9;
+  border-top: 1px solid rgba(192, 187, 169, 0.6);
+  border-bottom: 1px solid rgba(192, 187, 169, 0.6);
   padding: 0.5vh 0;
   margin-bottom: auto;
   width: 80%;
@@ -206,14 +246,14 @@ body, html {
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  margin-top: 2vh;
-  height: 10vh;
+  margin-top: 1vh;
+  height: 8vh;
   position: relative;
 }
 
 .original-price {
   font-family: 'Playfair Display', serif;
-  font-size: 6vh;
+  font-size: 4.5vh;
   font-weight: 700;
   color: #1a3a24;
   margin: 0;
@@ -229,8 +269,8 @@ body, html {
   top: 50%;
   left: -10%;
   width: 120%;
-  height: 0.4vh;
-  background-color: #8c2a2a;
+  height: 0.3vh;
+  background-color: #942b2b; /* Darker red */
   transform: rotate(-10deg);
   transform-origin: center;
   animation: strike 0.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
@@ -238,7 +278,7 @@ body, html {
 
 @keyframes strike {
   0% { width: 0; opacity: 0; }
-  100% { width: 120%; opacity: 0.9; }
+  100% { width: 120%; opacity: 0.95; }
 }
 
 /* Hidden by default, revealed after stamp */
@@ -257,75 +297,107 @@ body, html {
 .new-price {
   font-family: 'Montserrat', sans-serif;
   font-weight: 800;
-  font-size: 3.5vh;
-  color: #d45928; /* Muted orange */
+  font-size: 3vh;
+  color: #c94c22; /* Vibrant accent orange */
 }
 
 /* The distressed Stamp */
 .stamp {
   position: absolute;
-  bottom: 12vh;
+  bottom: 8vh;
   left: 50%;
-  transform: translate(-50%, 0) rotate(-15deg) scale(5);
+  transform: translate(-50%, 0) rotate(var(--stamp-rot, -15deg)) scale(5);
   opacity: 0;
   pointer-events: none;
   z-index: 20;
+  mix-blend-mode: multiply;
 
   /* Stamp styling */
-  color: #d45928;
+  color: #c94c22;
   font-family: 'Montserrat', sans-serif;
   font-weight: 800;
-  font-size: 5.5vh;
+  font-size: 3.5vh;
   line-height: 1;
   white-space: nowrap;
-  padding: 1.5vh 3vh;
-  border: 0.8vh solid #d45928;
-  border-radius: 1vh;
+  padding: 1vh 2vh;
+  border: 0.5vh solid #c94c22;
+  border-radius: 0.8vh;
 
   /* Distressed look using an SVG mask */
-  mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grunge'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.08' numOctaves='2'/%3E%3CfeColorMatrix type='matrix' values='1 0 0 0 0, 0 1 0 0 0, 0 0 1 0 0, 0 0 0 10 -4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' fill='white'/%3E%3Crect width='100%25' height='100%25' filter='url(%23grunge)' fill='black'/%3E%3C/svg%3E");
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grunge'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.08' numOctaves='2'/%3E%3CfeColorMatrix type='matrix' values='1 0 0 0 0, 0 1 0 0 0, 0 0 1 0 0, 0 0 0 10 -4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' fill='white'/%3E%3Crect width='100%25' height='100%25' filter='url(%23grunge)' fill='black'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grunge'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.08' numOctaves='3'/%3E%3CfeColorMatrix type='matrix' values='1 0 0 0 0, 0 1 0 0 0, 0 0 1 0 0, 0 0 0 8 -3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' fill='white'/%3E%3Crect width='100%25' height='100%25' filter='url(%23grunge)' fill='black'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grunge'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.08' numOctaves='3'/%3E%3CfeColorMatrix type='matrix' values='1 0 0 0 0, 0 1 0 0 0, 0 0 1 0 0, 0 0 0 8 -3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' fill='white'/%3E%3Crect width='100%25' height='100%25' filter='url(%23grunge)' fill='black'/%3E%3C/svg%3E");
   mask-type: luminance;
   -webkit-mask-type: luminance;
 }
 
-/* Animation states for Javascript to trigger */
+/* Animations Triggered by Classes */
 .card.deal-in {
-  transform: translateY(0) rotateZ(0) rotateX(0) scale(1);
-  opacity: 1;
+  animation: tossIn 1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
 .stamp.smash {
   animation: stampSmash 0.3s cubic-bezier(0.5, 0, 0.2, 1) forwards;
 }
 
-@keyframes stampSmash {
-  0% {
-    transform: translate(-50%, 0) rotate(-15deg) scale(5);
-    opacity: 0;
-  }
-  80% {
-    transform: translate(-50%, 0) rotate(-15deg) scale(0.95);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(-50%, 0) rotate(-15deg) scale(1);
-    opacity: 0.9;
-  }
-}
-
 .card.shake {
   animation: cardShake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
-@keyframes cardShake {
-  0%, 100% { transform: translateY(0) rotateZ(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateY(-3px) rotateZ(-1deg); }
-  20%, 40%, 60%, 80% { transform: translateY(3px) rotateZ(1deg); }
+.card.fly-out {
+  animation: tossOut 0.8s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards;
 }
 
-.card.fly-out {
-  transform: translateY(-120vh) rotateZ(-15deg) rotateX(20deg) scale(0.8);
-  opacity: 0;
-  transition: transform 0.8s cubic-bezier(0.6, -0.28, 0.735, 0.045), opacity 0.6s ease-in;
+/* Keyframes */
+@keyframes tossIn {
+  0% {
+    transform: translate(var(--target-x), 150vh) rotateZ(calc(var(--target-rot) + 40deg)) rotateX(70deg) rotateY(20deg) scale(1.3);
+    opacity: 0;
+    box-shadow: 0 100px 100px rgba(0,0,0,0.15);
+  }
+  40% {
+    opacity: 1;
+    transform: translate(var(--target-x), calc(var(--target-y) - 8vh)) rotateZ(calc(var(--target-rot) + 5deg)) rotateX(10deg) rotateY(0) scale(1.05);
+    box-shadow: 0 50px 60px rgba(0,0,0,0.25);
+  }
+  100% {
+    transform: translate(var(--target-x), var(--target-y)) rotateZ(var(--target-rot)) rotateX(0) scale(1);
+    opacity: 1;
+    /* High realism card shadow */
+    box-shadow:
+      0 15px 35px rgba(0,0,0,0.7),
+      0 0 0 1px rgba(255,255,255,0.4) inset,
+      -1px -1px 2px rgba(255,255,255,0.5) inset;
+  }
+}
+
+@keyframes tossOut {
+  0% {
+    transform: translate(var(--target-x), var(--target-y)) rotateZ(var(--target-rot)) rotateX(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--target-x), -120vh) rotateZ(calc(var(--target-rot) - 20deg)) rotateX(40deg) scale(0.8);
+    opacity: 0;
+  }
+}
+
+@keyframes cardShake {
+  0%, 100% { transform: translate(var(--target-x), var(--target-y)) rotateZ(var(--target-rot)); }
+  10%, 30%, 50%, 70%, 90% { transform: translate(calc(var(--target-x) - 2px), calc(var(--target-y) - 3px)) rotateZ(calc(var(--target-rot) - 1deg)); }
+  20%, 40%, 60%, 80% { transform: translate(calc(var(--target-x) + 2px), calc(var(--target-y) + 3px)) rotateZ(calc(var(--target-rot) + 1deg)); }
+}
+
+@keyframes stampSmash {
+  0% {
+    transform: translate(-50%, 0) rotate(var(--stamp-rot, -15deg)) scale(5);
+    opacity: 0;
+  }
+  80% {
+    transform: translate(-50%, 0) rotate(var(--stamp-rot, -15deg)) scale(0.95);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, 0) rotate(var(--stamp-rot, -15deg)) scale(1);
+    opacity: 0.95;
+  }
 }
