@@ -131,7 +131,7 @@ function createCardElement(product) {
 }
 
 /**
- * Core Animation Sequencer
+ * Core Animation Sequencer (GSAP)
  */
 async function runAnimationLoop() {
   const container = document.getElementById('card-container');
@@ -146,76 +146,148 @@ async function runAnimationLoop() {
     }
 
     container.innerHTML = ''; // Clear previous cards
-
     const cardEls = [];
 
     // Create and stage the 3 cards
     currentProducts.forEach((product) => {
       const cardEl = createCardElement(product);
-
-      // Randomize target position slightly for realistic tossing & misalignment
-      const rot = (Math.random() - 0.5) * 10; // -5 to 5 degrees tilt
-      const yOffset = (Math.random() - 0.5) * 4; // -2 to 2 vh vertical offset
-      const xOffset = (Math.random() - 0.5) * 2; // -1 to 1 vw horizontal offset
-
-      cardEl.style.setProperty('--target-rot', `${rot}deg`);
-      cardEl.style.setProperty('--target-y', `${yOffset}vh`);
-      cardEl.style.setProperty('--target-x', `${xOffset}vw`);
-
       container.appendChild(cardEl);
       cardEls.push(cardEl);
+
+      // Target variations for organic feel
+      const rot = (Math.random() - 0.5) * 10;
+      const yOffset = (Math.random() - 0.5) * 4;
+      const xOffset = (Math.random() - 0.5) * 2;
+
+      cardEl.dataset.targetRot = rot;
+      cardEl.dataset.targetY = yOffset;
+      cardEl.dataset.targetX = xOffset;
     });
 
-    // Give browser a moment to render the initial off-screen state
-    await delay(100);
+    // Brief yield for DOM flush
+    await delay(50);
 
-    // 2. Deal the cards in rapidly but sequentially
-    for(let i=0; i<3; i++) {
-      cardEls[i].classList.add('deal-in');
-      await delay(150); // Small delay between each throw
-    }
+    // Orchestrate with a unified GSAP Timeline
+    await new Promise((resolve) => {
+      const tl = gsap.timeline({ onComplete: resolve });
 
-    // Wait for deal animation + let user read initial price/product
-    await delay(2500);
+      // 1. Initial State Definitions
+      cardEls.forEach((cardEl) => {
+        tl.set(cardEl, {
+          y: "150vh",
+          x: `${cardEl.dataset.targetX}vw`,
+          rotationZ: parseFloat(cardEl.dataset.targetRot) + 40,
+          rotationX: 70,
+          rotationY: 20,
+          scale: 1.3,
+          opacity: 0,
+          boxShadow: "0 100px 100px rgba(0,0,0,0.15)"
+        }, 0);
 
-    // 3. The Smash (Stamp) - staggered rapidly across the 3 cards
-    for(let i=0; i<3; i++) {
-      const stampEl = cardEls[i].querySelector('.stamp');
-      stampEl.classList.add('smash');
+        const stampEl = cardEl.querySelector('.stamp');
+        tl.set(stampEl, {
+          scale: 5,
+          opacity: 0
+        }, 0);
+      });
 
-      // Wait precisely for the moment the stamp hits the card
-      setTimeout(() => {
-        cardEls[i].classList.remove('deal-in');
-        cardEls[i].classList.add('dealt');
-        cardEls[i].classList.add('shake');
+      // 2. Deal phase
+      cardEls.forEach((cardEl, i) => {
+        const targetX = `${parseFloat(cardEl.dataset.targetX)}vw`;
+        const targetY = `${parseFloat(cardEl.dataset.targetY)}vh`;
+        const targetRot = parseFloat(cardEl.dataset.targetRot);
+        const dealTime = i * 0.15;
 
-        // Strikethrough original price and reveal new price
-        const origPriceEl = cardEls[i].querySelector('.original-price');
-        const newPriceContainer = cardEls[i].querySelector('.new-price-container');
+        tl.to(cardEl, {
+          duration: 1,
+          y: targetY,
+          rotationZ: targetRot,
+          rotationX: 0,
+          rotationY: 0,
+          scale: 1,
+          opacity: 1,
+          boxShadow: "0 15px 35px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.4) inset, -1px -1px 2px rgba(255,255,255,0.5) inset",
+          ease: "power2.out"
+        }, dealTime);
+      });
 
-        origPriceEl.classList.add('struck');
-        newPriceContainer.classList.add('show');
-      }, 300); // 300ms is the impact point of stampSmash keyframe
+      // Pause briefly so user can digest original pricing/products
+      const timeAfterDeal = 1 + (cardEls.length - 1) * 0.15 + 2.5;
 
-      await delay(150); // Small delay between stamps
-    }
+      // 3. Stamp & Reveal phase
+      cardEls.forEach((cardEl, i) => {
+        const stampEl = cardEl.querySelector('.stamp');
+        const origPriceEl = cardEl.querySelector('.original-price');
+        const newPriceContainer = cardEl.querySelector('.new-price-container');
 
-    // 5. Hold state so user reads the discounts
-    await delay(4500);
+        const targetXStr = `${parseFloat(cardEl.dataset.targetX)}vw`;
+        const targetYStr = `${parseFloat(cardEl.dataset.targetY)}vh`;
+        const targetRot = parseFloat(cardEl.dataset.targetRot);
 
-    // 6. Fly the cards out
-    for(let i=0; i<3; i++) {
-      cardEls[i].classList.remove('deal-in');
-      cardEls[i].classList.remove('shake');
-      cardEls[i].classList.remove('dealt');
-      cardEls[i].classList.add('fly-out');
-      await delay(120);
-    }
+        const stampStartTime = timeAfterDeal + i * 0.15;
+        const impactTime = stampStartTime + 0.25;
 
-    // Wait for fly out animation to finish before starting next batch
-    await delay(1200);
+        // Stamp hits
+        tl.to(stampEl, {
+          duration: 0.3,
+          scale: 1,
+          opacity: 0.95,
+          ease: "back.inOut(1.5)"
+        }, stampStartTime);
 
-    // Loop to next products (chunk by 3)
+        // Card flinches exactly upon impact
+        tl.to(cardEl, {
+          duration: 0.05,
+          x: `calc(${targetXStr} - 2px)`,
+          y: `calc(${targetYStr} - 3px)`,
+          rotationZ: targetRot - 1,
+          ease: "none"
+        }, impactTime)
+        .to(cardEl, {
+          duration: 0.05,
+          x: `calc(${targetXStr} + 2px)`,
+          y: `calc(${targetYStr} + 3px)`,
+          rotationZ: targetRot + 1,
+          ease: "none"
+        }, impactTime + 0.05)
+        .to(cardEl, {
+          duration: 0.05,
+          x: targetXStr,
+          y: targetYStr,
+          rotationZ: targetRot,
+          ease: "none"
+        }, impactTime + 0.1);
+
+        // Prices dynamically strike/reveal upon impact
+        tl.call(() => {
+          origPriceEl.classList.add('struck');
+          newPriceContainer.classList.add('show');
+        }, null, impactTime);
+      });
+
+      // 4. Hold & Fly Out Phase
+      const timeAfterStamps = timeAfterDeal + (cardEls.length - 1) * 0.15 + 0.3 + 4.5;
+
+      cardEls.forEach((cardEl, i) => {
+        const targetRot = parseFloat(cardEl.dataset.targetRot);
+        const flyOutTime = timeAfterStamps + i * 0.12;
+
+        tl.to(cardEl, {
+          duration: 0.8,
+          y: "-120vh",
+          rotationZ: targetRot - 20,
+          rotationX: 40,
+          scale: 0.8,
+          opacity: 0,
+          ease: "power2.in"
+        }, flyOutTime);
+      });
+
+      // Extra pad before resolving the Promise to move to next chunk
+      tl.to({}, { duration: 1.2 });
+    });
+
+    // Advance to next products
     currentIndex = (currentIndex + 3) % products.length;
   }
 }
