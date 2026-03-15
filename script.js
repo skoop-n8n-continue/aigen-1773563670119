@@ -185,6 +185,8 @@ async function runAnimationLoop() {
 
       // Wait precisely for the moment the stamp hits the card
       setTimeout(() => {
+        cardEls[i].classList.remove('deal-in');
+        cardEls[i].classList.add('dealt');
         cardEls[i].classList.add('shake');
 
         // Strikethrough original price and reveal new price
@@ -205,6 +207,7 @@ async function runAnimationLoop() {
     for(let i=0; i<3; i++) {
       cardEls[i].classList.remove('deal-in');
       cardEls[i].classList.remove('shake');
+      cardEls[i].classList.remove('dealt');
       cardEls[i].classList.add('fly-out');
       await delay(120);
     }

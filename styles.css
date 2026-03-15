@@ -331,6 +331,15 @@ body, html {
 }
 
 /* Animations Triggered by Classes */
+.card.dealt {
+  opacity: 1;
+  transform: translate(var(--target-x), var(--target-y)) rotateZ(var(--target-rot)) rotateX(0) scale(1);
+  box-shadow:
+    0 15px 35px rgba(0,0,0,0.7),
+    0 0 0 1px rgba(255,255,255,0.4) inset,
+    -1px -1px 2px rgba(255,255,255,0.5) inset;
+}
+
 .card.deal-in {
   animation: tossIn 1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
@@ -372,6 +381,10 @@ body, html {
 
 @keyframes tossOut {
   0% {
+    box-shadow:
+      0 15px 35px rgba(0,0,0,0.7),
+      0 0 0 1px rgba(255,255,255,0.4) inset,
+      -1px -1px 2px rgba(255,255,255,0.5) inset;
     transform: translate(var(--target-x), var(--target-y)) rotateZ(var(--target-rot)) rotateX(0) scale(1);
     opacity: 1;
   }
